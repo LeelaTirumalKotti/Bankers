@@ -33,7 +33,7 @@ export class Dashboard implements OnInit{
       const headers = new HttpHeaders({
       Authorization: `Bearer ${userToken}`
     });
-      this.http.get(`http://localhost:8080/api/banker/bankerData/${this.id}`, {headers})
+      this.http.get(`https://smartbanking-production.up.railway.app/api/banker/bankerData/${this.id}`, {headers})
       .subscribe({
         next: (response: any) => {       
             this.bankerData=response;

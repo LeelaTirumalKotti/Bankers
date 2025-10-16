@@ -18,18 +18,22 @@ export class Register implements OnInit {
   constructor(private fb: FormBuilder, private http: HttpClient) {}
 
   ngOnInit(): void {
-    this.registerForm = this.fb.group({
-      username: ['',Validators.minLength(5), Validators.required],
-      password: ['', Validators.minLength(6),Validators.required],
-      branchIfscCode: ['', Validators.required],
-    });
-
+    console.log("sta")
+      this.registerForm = this.fb.group({
+        username: ['', [Validators.required, Validators.minLength(5)]],
+        password: ['', [Validators.required, Validators.minLength(6)]],
+        branchIfscCode: ['', [Validators.required]],
+      });
     this.loadBranches();
   }
 
   loadBranches(): void {
-    this.http.get<any[]>('http://localhost:8080/api/auth/branches').subscribe({
-      next: (data) => (this.branches = data),
+    this.http.get<any[]>('https://smartbanking-production.up.railway.app/api/auth/branches').subscribe({
+      next: (data) =>{
+          this.branches = data,
+          
+          console.log(this.branches)
+      },
       error: (err) => console.error('Failed to load branches', err),
     });
   }
@@ -37,7 +41,7 @@ export class Register implements OnInit {
   onSubmit(): void {
     if (this.registerForm.valid) {
       this.http
-        .post('http://localhost:8080/api/auth/registerBanker', this.registerForm.value)
+        .post('https://smartbanking-production.up.railway.app/api/auth/registerBanker', this.registerForm.value)
         .subscribe({
           next: (res) => alert('Banker registered successfully!'),
           error: (err) => alert('Registration failed'),

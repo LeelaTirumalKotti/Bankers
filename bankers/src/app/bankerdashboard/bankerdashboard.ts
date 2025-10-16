@@ -79,7 +79,7 @@ ageGroupChartOptions: ChartOptions<'bar'> = {
 
       const branchId = this.bankerData.branches.branchId;
 
-      this.http.get<any[]>(`http://localhost:8080/api/banker/getAccountsByBranches/${branchId}`, { headers })
+      this.http.get<any[]>(`https://smartbanking-production.up.railway.app/api/banker/getAccountsByBranches/${branchId}`, { headers })
         .subscribe(response => {
           this.accounts = response;
           this.updateChartData();
@@ -87,7 +87,7 @@ ageGroupChartOptions: ChartOptions<'bar'> = {
           console.error('Error fetching accounts:', error);
         });
 
-      this.http.get<any[]>(`http://localhost:8080/api/banker/getCustomerProfiles/${branchId}`, { headers })
+      this.http.get<any[]>(`https://smartbanking-production.up.railway.app/api/banker/getCustomerProfiles/${branchId}`, { headers })
         .subscribe(response => {
           this.profiles = response;
           this.processBirthYears();

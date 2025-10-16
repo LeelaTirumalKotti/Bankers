@@ -21,7 +21,7 @@ export class KycUpdates implements OnInit {
     const headers = new HttpHeaders({
     Authorization: `Bearer ${token}`
     });
-    this.http.get<any[]>('http://localhost:8080/api/banker/kycPendings',{headers}).subscribe({
+    this.http.get<any[]>('https://smartbanking-production.up.railway.app/api/banker/kycPendings',{headers}).subscribe({
       next: data => {
         this.customerProfiles = data
         console.log(this.customerProfiles)
@@ -37,7 +37,7 @@ export class KycUpdates implements OnInit {
     const headers = new HttpHeaders({
     Authorization: `Bearer ${token}`
     });
-    this.http.put(`http://localhost:8080/api/banker/profiles/${id}/kyc?status=${status}`,null, {headers}).subscribe({
+    this.http.put(`https://smartbanking-production.up.railway.app/api/banker/profiles/${id}/kyc?status=${status}`,null, {headers}).subscribe({
       next: updated => {
         this.customerProfiles = this.customerProfiles.filter(p => p.id !== id);
       },
