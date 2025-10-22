@@ -1,22 +1,29 @@
 <h3 style="text-align: center;">Banker Dashboard</h3>
+
 <div style="width: 400px; margin: auto;">
-  <h4 class="">Number of Accounts</h4>
+  <h4>Number of Accounts</h4>
+  
   <canvas #pieChart baseChart
+          *ngIf="accounts.length > 0"
           [data]="pieChartData"
           [type]="'pie'"
           [options]="pieChartOptions">
-          <p>p</p>
   </canvas>
-  <p *ngIf="accounts.length==0">No Accounts</p>
+  
+  <p *ngIf="!accountsLoaded">Loading Accounts...</p>
+  <p *ngIf="accountsLoaded && accounts.length === 0">No Accounts</p>
 </div>
 
 <div style="width: 600px; margin: 40px auto;">
-  <h4 class="">Customer Profiles by Age Group</h4>
+  <h4>Customer Profiles by Age Group</h4>
+  
   <canvas #barChart baseChart
+          *ngIf="profiles.length > 0"
           [data]="ageGroupChartData"
           [type]="'bar'"
           [options]="ageGroupChartOptions">
   </canvas>
-  <p *ngIf="profiles.length==0">No Customers</p>
+  
+  <p *ngIf="!profilesLoaded">Loading Customers...</p>
+  <p *ngIf="profilesLoaded && profiles.length === 0">No Customers</p>
 </div>
-

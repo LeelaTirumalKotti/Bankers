@@ -5,8 +5,10 @@ import { CommonModule } from '@angular/common';
 import { SearchAccount } from "../search-account/search-account";
 import { Bankerdashboard } from "../bankerdashboard/bankerdashboard";
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+
 @Component({
   selector: 'app-dashboard',
+  standalone: true, 
   imports: [KycUpdates, CommonModule, SearchAccount, Bankerdashboard],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
@@ -14,45 +16,44 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 export class Dashboard implements OnInit{
   loginData: any;
   id!:number
-  display="kyc"
+  display: string = "dashboard"; 
   bankerData:any;
-  constructor(private router: Router,private http:HttpClient) {
-    // Access the state immediately in the constructor or use in ngOnInit
-    // history.state is a standard browser API object
+  hasVisitedDashboard: boolean = false; // Used for initial component creation
+
+  constructor(private router: Router, private http: HttpClient) {
     if (this.router.getCurrentNavigation()?.extras.state) {
       this.loginData = history.state.loginResponse;
     }
   }
 
-    ngOnInit(): void {
+  ngOnInit(): void {
     if (this.loginData) {
-      console.log('Data received from login:', this.loginData);
       const userToken=localStorage.getItem("accessToken")
       this.id=this.loginData.id;
-      //BANKERDATA
+
+      // Set true immediately to allow the child component to start fetching its data
+      this.hasVisitedDashboard = true; 
+      
+      // BANKER DATA Fetch
       const headers = new HttpHeaders({
-      Authorization: `Bearer ${userToken}`
-    });
+        Authorization: `Bearer ${userToken}`
+      });
       this.http.get(`https://smartbanking-production.up.railway.app/api/banker/bankerData/${this.id}`, {headers})
       .subscribe({
-        next: (response: any) => {       
+        next: (response: any) => {       
             this.bankerData=response;
-            console.log(this.bankerData);
             },
         error: (error: any) => {
-          console.error("Login failed:", error); 
+          console.error("Error fetching banker data:", error); 
         }
       });
-      
-      // You can now use the data to initialize the dashboard
     } else {
-      console.warn('No login state data found. User may have navigated directly.');
+      console.warn('No login state data found.');
     }
   }
 
   displayFunction(key:string){
-      this.display=key;
-      console.log(this.display)
+      this.display = key;
   }
 
   logOut(){

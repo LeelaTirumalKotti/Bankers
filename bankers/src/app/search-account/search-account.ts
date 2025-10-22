@@ -31,7 +31,7 @@ export class SearchAccount {
     });
 
     try {
-      const url = `http://localhost:8080/api/banker/account/${this.accountNumber}`;
+      const url = `https://smartbanking-production.up.railway.app/api/banker/account/${this.accountNumber}`;
       this.account = await firstValueFrom(this.http.get<any>(url, { headers }));
       if(this.account==null){
         alert("Account Number is Invalid")

@@ -5,8 +5,7 @@
   </div>
 </nav>
 <div class="container-fluid mt-3">
-      <div class="row">
-    <!-- Sidebar buttons -->
+  <div class="row">
     <div class="col-md-3">
       <div class="d-flex flex-column">
         <button class="btn btn-info mb-2" (click)="displayFunction('dashboard')">Dashboard</button>
@@ -15,19 +14,19 @@
       </div>
     </div>
 
-    <!-- Main content area -->
     <div class="col-md-9">
-<div *ngIf="display === 'dashboard' && bankerData">
+      
+      <div *ngIf="bankerData && hasVisitedDashboard" 
+           [hidden]="display !== 'dashboard'">
           <app-bankerdashboard [bankerData]="bankerData"></app-bankerdashboard>
-          
       </div>
+      
       <div *ngIf="display === 'kyc'">
         <app-kyc-updates></app-kyc-updates>
       </div>
       <div *ngIf="display === 'searchAccount'">
         <app-search-account></app-search-account>
       </div>
-    
     </div>
   </div>
 </div>

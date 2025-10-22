@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, AfterViewInit, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgChartsModule, BaseChartDirective } from 'ng2-charts';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
@@ -11,149 +11,130 @@ import { ChartConfiguration, ChartOptions } from 'chart.js';
   templateUrl: './bankerdashboard.html',
   styleUrls: ['./bankerdashboard.css']
 })
-export class Bankerdashboard implements OnInit, AfterViewInit {
+export class Bankerdashboard implements OnInit {
   @Input() bankerData: any;
 
-  @ViewChild('pieChart', { static: false }) pieChart?: BaseChartDirective;
-  @ViewChild('barChart', { static: false }) barChart?: BaseChartDirective;
-
-  chartsReady = false;
+  @ViewChild('pieChart') pieChart?: BaseChartDirective;
+  @ViewChild('barChart') barChart?: BaseChartDirective;
 
   accounts: any[] = [];
   profiles: any[] = [];
+  
+  accountsLoaded: boolean = false; 
+  profilesLoaded: boolean = false; 
+  
+  showPieChart: boolean = false; // Controls visibility of the pie chart
+  showBarChart: boolean = false; // Controls visibility of the bar chart
 
-  birthYearCounts: { [year: string]: number } = {};
-
+  // --- PIE CHART CONFIGURATION ---
   pieChartData: ChartConfiguration<'pie'>['data'] = {
     labels: ['SAVINGS', 'CURRENT', 'CREDIT'],
-    datasets: [
-      {
-        data: [0, 0, 0],
-        backgroundColor: ['#4CAF50', '#2196F3', '#FFC107']
-      }
-    ]
+    datasets: [{ 
+        data: [0, 0, 0], 
+        backgroundColor: ['#4CAF50', '#2196F3', '#FFC107'] 
+    }]
   };
-
   pieChartOptions: ChartOptions<'pie'> = {
     responsive: true,
     plugins: {
       legend: { position: 'top' },
-      title: {
-        display: true,
-        text: 'Account Types Distribution'
-      }
+      title: { display: true, text: 'Account Types Distribution' }
     }
   };
 
-ageGroupChartData: ChartConfiguration<'bar'>['data'] = {
-  labels: ['18–29', '30–59', '60+'],
-  datasets: [
-    {
-      data: [0, 0, 0],
-      label: 'Customer Age Groups',
-      backgroundColor: ['#42A5F5', '#66BB6A', '#FFA726']
-    }
-  ]
-};
-
-ageGroupChartOptions: ChartOptions<'bar'> = {
-  responsive: true,
-  plugins: {
-    legend: { display: false },
-    title: {
-      display: true,
-      text: 'Customer Profiles by Age Group'
-    }
-  }
-};
-
+  // 💥 FIX: Correct structure for ChartConfiguration (TS2741 resolved) 💥
+  ageGroupChartData: ChartConfiguration<'bar'>['data'] = {
+    labels: ['18–29', '30–59', '60+'],
+    datasets: [{ 
+        data: [0, 0, 0], 
+        label: 'Customer Age Groups', 
+        backgroundColor: ['#42A5F5', '#66BB6A', '#FFA726'] 
+    }]
+  };
+  ageGroupChartOptions: ChartOptions<'bar'> = {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      title: { display: true, text: 'Customer Profiles by Age Group' }
+    },
+    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+  };
 
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
-    if (this.bankerData) {
-      const token = localStorage.getItem('accessToken');
-      const headers = new HttpHeaders({
-        Authorization: `Bearer ${token}`
+    if (!this.bankerData) return;
+
+    const token = localStorage.getItem('accessToken');
+    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+    const branchId = this.bankerData.branches.branchId;
+
+    // 1. Fetch Accounts
+    this.http.get<any[]>(`https://smartbanking-production.up.railway.app/api/banker/getAccountsByBranches/${branchId}`, { headers })
+      .subscribe(response => {
+        this.accounts = response;
+        this.processPieChartData();
+        this.accountsLoaded = true;
+        
+        // FIX: Update, then force visibility after data is ready
+        setTimeout(() => {
+            if (this.accounts.length > 0) {
+                 this.pieChart?.update();
+                 this.showPieChart = true; // Make chart visible
+            }
+        }, 0); 
+
+      }, error => {
+        console.error('Error fetching accounts:', error);
+        this.accountsLoaded = true;
       });
 
-      const branchId = this.bankerData.branches.branchId;
+    // 2. Fetch Profiles
+    this.http.get<any[]>(`https://smartbanking-production.up.railway.app/api/banker/getCustomerProfiles/${branchId}`, { headers })
+      .subscribe(response => {
+        this.profiles = response;
+        this.processBarChartData();
+        this.profilesLoaded = true;
+        
+        // FIX: Update, then force visibility after data is ready
+        setTimeout(() => {
+            if (this.profiles.length > 0) {
+                this.barChart?.update();
+                this.showBarChart = true; // Make chart visible
+            }
+        }, 0);
 
-      this.http.get<any[]>(`https://smartbanking-production.up.railway.app/api/banker/getAccountsByBranches/${branchId}`, { headers })
-        .subscribe(response => {
-          this.accounts = response;
-          console.log(response)
-          this.updateChartData();
-        }, error => {
-          console.log("accounts")
-          console.error('Error fetching accounts:');
-        });
-
-      this.http.get<any[]>(`https://smartbanking-production.up.railway.app/api/banker/getCustomerProfiles/${branchId}`, { headers })
-        .subscribe(response => {
-          this.profiles = response;
-          this.processBirthYears();
-        }, error => {
-          console.log("profiles")
-          console.error('Error fetching profiles:');
-        });
-    }
+      }, error => {
+        console.error('Error fetching profiles:', error);
+        this.profilesLoaded = true;
+      });
   }
 
-  ngAfterViewInit(): void {
-    this.chartsReady = true;
-  }
-
-  updateChartData(): void {
-    const typeCounts: Record<'SAVINGS' | 'CURRENT' | 'CREDIT', number> = {
-      SAVINGS: 0,
-      CURRENT: 0,
-      CREDIT: 0
-    };
-
+  processPieChartData(): void {
+    if (this.accounts.length === 0) return;
+    const typeCounts = { SAVINGS: 0, CURRENT: 0, CREDIT: 0 };
     this.accounts.forEach(account => {
-      const type = account.accountType?.toUpperCase();
-      if (typeCounts[type as keyof typeof typeCounts] !== undefined) {
-        typeCounts[type as keyof typeof typeCounts]++;
-      }
+      const type = account.accountType?.toUpperCase() as keyof typeof typeCounts;
+      if (typeCounts[type] !== undefined) { typeCounts[type]++; }
     });
-
     this.pieChartData.datasets[0].data = [
-      typeCounts['SAVINGS'],
-      typeCounts['CURRENT'],
-      typeCounts['CREDIT']
+      typeCounts['SAVINGS'], typeCounts['CURRENT'], typeCounts['CREDIT']
     ];
-
-    if (this.chartsReady && this.pieChart?.update) {
-      this.pieChart.update();
-    }
   }
 
- processBirthYears(): void {
-  const now = new Date();
-  let age18to29 = 0;
-  let age30to59 = 0;
-  let age60plus = 0;
+  processBarChartData(): void {
+    if (this.profiles.length === 0) return;
+    const now = new Date();
+    let age18to29 = 0, age30to59 = 0, age60plus = 0;
 
-  this.profiles.forEach(profile => {
-    const dob = new Date(profile.dateOfBirth);
-    let age = now.getFullYear() - dob.getFullYear();
-    const monthDiff = now.getMonth() - dob.getMonth();
-    const dayDiff = now.getDate() - dob.getDate();
-    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
-      age--; // adjust if birthday hasn't occurred yet this year
-    }
-
-    if (age >= 18 && age < 30) age18to29++;
-    else if (age >= 30 && age < 60) age30to59++;
-    else if (age >= 60) age60plus++;
-  });
-
-  this.ageGroupChartData.datasets[0].data = [age18to29, age30to59, age60plus];
-
-  if (this.chartsReady && this.barChart?.update) {
-    this.barChart.update();
+    this.profiles.forEach(profile => {
+      const dob = new Date(profile.dateOfBirth);
+      let age = now.getFullYear() - dob.getFullYear();
+      if (now.getMonth() < dob.getMonth() || (now.getMonth() === dob.getMonth() && now.getDate() < dob.getDate())) { age--; }
+      if (age >= 18 && age < 30) age18to29++;
+      else if (age >= 30 && age < 60) age30to59++;
+      else if (age >= 60) age60plus++;
+    });
+    this.ageGroupChartData.datasets[0].data = [age18to29, age30to59, age60plus];
   }
-}
-
 }
