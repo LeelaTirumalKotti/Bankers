@@ -82,7 +82,7 @@ ageGroupChartOptions: ChartOptions<'bar'> = {
       this.http.get<any[]>(`https://smartbanking-production.up.railway.app/api/banker/getAccountsByBranches/${branchId}`, { headers })
         .subscribe(response => {
           this.accounts = response;
-          
+          console.log(response)
           this.updateChartData();
         }, error => {
           console.log("accounts")
