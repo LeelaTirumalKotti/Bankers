@@ -33,7 +33,7 @@ export class Login {
             alert("Banker is Rejected")
           }
               //Adding token and role to localstorage 
-            else if(response.status==="APPROVED"){
+          else if(response.status==="APPROVED"){
               localStorage.setItem('accessToken', response.token)
                 localStorage.setItem('role',response.role)
                 
@@ -43,10 +43,13 @@ export class Login {
                   }
                 }); // Navigate to the dashboard route
               }
-            },
+          else{
+            alert(response.status+" "+"v")
+          }
+          }
+         ,
         error: (err: any) => {
-          console.log(err.error.message)
-          alert(err.error.message)
+          alert(err.error.message+" fd")
         }
       });
   }
