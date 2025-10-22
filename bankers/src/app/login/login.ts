@@ -22,7 +22,7 @@ export class Login {
 
   onsubmit() {
 
-    this.http.post("https://smartbanking-production.up.railway.app/api/auth/login", this.loginForm.value)
+    this.http.post("http://localhost:8080/api/auth/login", this.loginForm.value)
       .subscribe({
         next: (response: any) => {
           console.log(response);

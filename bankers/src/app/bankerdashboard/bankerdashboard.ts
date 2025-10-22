@@ -84,6 +84,7 @@ ageGroupChartOptions: ChartOptions<'bar'> = {
           this.accounts = response;
           this.updateChartData();
         }, error => {
+          console.log("accounts")
           console.error('Error fetching accounts:', error);
         });
 
@@ -92,6 +93,7 @@ ageGroupChartOptions: ChartOptions<'bar'> = {
           this.profiles = response;
           this.processBirthYears();
         }, error => {
+          console.log("profiles")
           console.error('Error fetching profiles:', error);
         });
     }

@@ -28,7 +28,7 @@ export class Register implements OnInit {
   }
 
   loadBranches(): void {
-    this.http.get<any[]>('https://smartbanking-production.up.railway.app/api/auth/branches').subscribe({
+    this.http.get<any[]>('http://localhost:8080/api/auth/branches').subscribe({
       next: (data) =>{
           this.branches = data,
           
@@ -41,7 +41,7 @@ export class Register implements OnInit {
   onSubmit(): void {
     if (this.registerForm.valid) {
       this.http
-        .post('https://smartbanking-production.up.railway.app/api/auth/registerBanker', this.registerForm.value)
+        .post('http://localhost:8080/api/auth/registerBanker', this.registerForm.value)
         .subscribe({
           next: (res) => alert('Banker registered successfully!'),
           error: (err) => alert('Registration failed'),
