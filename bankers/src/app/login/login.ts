@@ -33,7 +33,7 @@ export class Login {
             alert("Banker is Rejected")
           }
               //Adding token and role to localstorage 
-              else{
+            else if(response.status==="APPROVED"){
               localStorage.setItem('accessToken', response.token)
                 localStorage.setItem('role',response.role)
                 
