@@ -16,11 +16,11 @@
 
     <div class="col-md-9">
       
-      <div *ngIf="bankerData && hasVisitedDashboard" 
-           [hidden]="display !== 'dashboard'">
-          <app-bankerdashboard [bankerData]="bankerData"></app-bankerdashboard>
-      </div>
-      
+<div *ngIf="isBankerDataLoaded && hasVisitedDashboard && display === 'dashboard'">
+  <app-bankerdashboard
+    [bankerData]="bankerData">
+  </app-bankerdashboard>
+</div>
       <div *ngIf="display === 'kyc'">
         <app-kyc-updates></app-kyc-updates>
       </div>

@@ -8,17 +8,19 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 @Component({
   selector: 'app-dashboard',
-  standalone: true, 
+  standalone: true,
   imports: [KycUpdates, CommonModule, SearchAccount, Bankerdashboard],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
-export class Dashboard implements OnInit{
+export class Dashboard implements OnInit {
   loginData: any;
-  id!:number
-  display: string = "dashboard"; 
-  bankerData:any;
-  hasVisitedDashboard: boolean = false; // Used for initial component creation
+  id!: number;
+  display: string = "kyc";
+  bankerData: any;
+  hasVisitedDashboard: boolean = false;
+  dashboardKey: number = 0;
+  isBankerDataLoaded = false;
 
   constructor(private router: Router, private http: HttpClient) {
     if (this.router.getCurrentNavigation()?.extras.state) {
@@ -28,36 +30,37 @@ export class Dashboard implements OnInit{
 
   ngOnInit(): void {
     if (this.loginData) {
-      const userToken=localStorage.getItem("accessToken")
-      this.id=this.loginData.id;
+      const userToken = localStorage.getItem("accessToken");
+      this.id = this.loginData.id;
 
-      // Set true immediately to allow the child component to start fetching its data
-      this.hasVisitedDashboard = true; 
-      
-      // BANKER DATA Fetch
+      this.hasVisitedDashboard = true;
+
       const headers = new HttpHeaders({
         Authorization: `Bearer ${userToken}`
       });
-      this.http.get(`https://smartbanking-production.up.railway.app/api/banker/bankerData/${this.id}`, {headers})
-      .subscribe({
-        next: (response: any) => {       
-            this.bankerData=response;
-            },
-        error: (error: any) => {
-          console.error("Error fetching banker data:", error); 
-        }
-      });
+
+      this.http.get(`https://smartbanking-production.up.railway.app/api/banker/bankerData/${this.id}`, { headers })
+        .subscribe({
+          next: (response: any) => {
+            this.bankerData = response;
+                  this.isBankerDataLoaded = true; // ✅ mark data as ready
+          },
+          error: (error: any) => {
+            console.error("Error fetching banker data:", error);
+          }
+        });
     } else {
       console.warn('No login state data found.');
     }
   }
 
-  displayFunction(key:string){
-      this.display = key;
+  displayFunction(key: string): void {
+    this.display = key;
+  console.log(this.display)
   }
 
-  logOut(){
+  logOut(): void {
     localStorage.removeItem('accessToken');
-    this.router.navigate(['/login'])
+    this.router.navigate(['/login']);
   }
 }

@@ -75,7 +75,7 @@ export class Bankerdashboard implements OnInit {
         this.accounts = response;
         this.processPieChartData();
         this.accountsLoaded = true;
-        
+        console.log(this.accounts)
         // FIX: Update, then force visibility after data is ready
         setTimeout(() => {
             if (this.accounts.length > 0) {
@@ -95,7 +95,7 @@ export class Bankerdashboard implements OnInit {
         this.profiles = response;
         this.processBarChartData();
         this.profilesLoaded = true;
-        
+        console.log(this.profiles)
         // FIX: Update, then force visibility after data is ready
         setTimeout(() => {
             if (this.profiles.length > 0) {
