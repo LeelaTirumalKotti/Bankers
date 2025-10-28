@@ -16,6 +16,22 @@ export class KycUpdates implements OnInit {
   constructor(private http: HttpClient,private cdr: ChangeDetectorRef) {}
   headers:any
   ngOnInit(): void {
+    // const token = localStorage.getItem('accessToken');
+    // const headers = new HttpHeaders({
+    // Authorization: `Bearer ${token}`
+    // });
+    // this.http.get<any[]>('https://smartbanking-production.up.railway.app/api/banker/kycPendings',{headers}).subscribe({
+    //   next: data => {
+    //     this.customerProfiles = data
+    //     console.log(this.customerProfiles)
+    //           this.cdr.detectChanges();
+    //   },
+    //   error: err => console.error('Failed to load KYC pendings', err)
+    // });
+    this.loadKycdetails();
+  }
+
+  loadKycdetails(){
     const token = localStorage.getItem('accessToken');
     const headers = new HttpHeaders({
     Authorization: `Bearer ${token}`
@@ -39,6 +55,8 @@ export class KycUpdates implements OnInit {
     this.http.put(`https://smartbanking-production.up.railway.app/api/banker/profiles/${id}/kyc?status=${status}`,null, {headers}).subscribe({
       next: updated => {
         this.customerProfiles = this.customerProfiles.filter(p => p.id !== id);
+        this.loadKycdetails();
+        
       },
       error: err => console.error(`Failed to update KYC status for ${id}`, err)
     });

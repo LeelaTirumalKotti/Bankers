@@ -16,7 +16,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 export class Dashboard implements OnInit {
   loginData: any;
   id!: number;
-  display: string = "dashboard";
+  display: string = "kyc";
   bankerData: any;
 
   constructor(private router: Router, private http: HttpClient) {
