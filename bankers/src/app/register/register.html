@@ -31,11 +31,11 @@
 <div class="mb-3">
   <label for="branch" class="form-label">Select Branch</label>
   <select id="branch" formControlName="branchIfscCode" class="form-select">
-    <option *ngFor="let branch of branches" [value]="branch.ifscCode">
-      {{ branch.branchName }}({{ branch.ifscCode }})
+    <option value="">Select Branch</option>
+    <option *ngFor="let branch of branches$ | async" [value]="branch.ifscCode">
+      {{ branch.branchName }} ({{ branch.ifscCode }})
     </option>
-  </select>
-</div>
+  </select></div>
 
       <!-- Submit Button -->
       <button type="submit" class="btn btn-primary w-100">Register Banker</button>

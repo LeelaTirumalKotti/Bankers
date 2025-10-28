@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-
+import { BehaviorSubject } from 'rxjs';
 
 @Component({
   selector: 'app-register',
@@ -13,26 +13,25 @@ import { RouterLink } from '@angular/router';
 })
 export class Register implements OnInit {
   registerForm!: FormGroup;
-  branches: any[] = [];
+  branches$ = new BehaviorSubject<any[]>([]); // Observable for dropdown
 
   constructor(private fb: FormBuilder, private http: HttpClient) {}
 
   ngOnInit(): void {
-    console.log("sta")
-      this.registerForm = this.fb.group({
-        username: ['', [Validators.required, Validators.minLength(5)]],
-        password: ['', [Validators.required, Validators.minLength(6)]],
-        branchIfscCode: ['', [Validators.required]],
-      });
+    this.registerForm = this.fb.group({
+      username: ['', [Validators.required, Validators.minLength(5)]],
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      branchIfscCode: ['', [Validators.required]],
+    });
+
     this.loadBranches();
   }
 
   loadBranches(): void {
     this.http.get<any[]>('https://smartbanking-production.up.railway.app/api/auth/branches').subscribe({
-      next: (data) =>{
-          this.branches = data,
-          
-          console.log(this.branches)
+      next: (data) => {
+        this.branches$.next(data); // Push data into observable
+        console.log('Branches loaded:', data);
       },
       error: (err) => console.error('Failed to load branches', err),
     });
@@ -43,8 +42,8 @@ export class Register implements OnInit {
       this.http
         .post('https://smartbanking-production.up.railway.app/api/auth/registerBanker', this.registerForm.value)
         .subscribe({
-          next: (res) => alert('Banker registered successfully!'),
-          error: (err) => alert('Registration failed'),
+          next: () => alert('Banker registered successfully!'),
+          error: () => alert('Registration failed'),
         });
     }
   }

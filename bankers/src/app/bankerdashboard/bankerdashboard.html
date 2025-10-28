@@ -1,8 +1,7 @@
 <h3 style="text-align: center;">Banker Dashboard</h3>
-
-<div style="width: 400px; margin: auto;">
   <h4>Number of Accounts</h4>
-  
+
+<div style="width: 400px; margin: auto;">  
   <canvas #pieChart baseChart
           *ngIf="accounts.length > 0"
           [data]="pieChartData"
@@ -14,8 +13,9 @@
   <p *ngIf="accountsLoaded && accounts.length === 0">No Accounts</p>
 </div>
 
-<div style="width: 600px; margin: 40px auto;">
   <h4>Customer Profiles by Age Group</h4>
+
+<div style="width: 600px; margin: 40px auto;">
   
   <canvas #barChart baseChart
           *ngIf="profiles.length > 0"

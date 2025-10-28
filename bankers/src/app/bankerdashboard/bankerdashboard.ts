@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { NgChartsModule, BaseChartDirective } from 'ng2-charts';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ChartConfiguration, ChartOptions } from 'chart.js';
+import { forkJoin, of } from 'rxjs';
+import { catchError, tap, finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-bankerdashboard',
@@ -19,19 +21,18 @@ export class Bankerdashboard implements OnInit {
 
   accounts: any[] = [];
   profiles: any[] = [];
-  
-  accountsLoaded: boolean = false; 
-  profilesLoaded: boolean = false; 
-  
-  showPieChart: boolean = false; // Controls visibility of the pie chart
-  showBarChart: boolean = false; // Controls visibility of the bar chart
 
-  // --- PIE CHART CONFIGURATION ---
+  accountsLoaded = false;
+  profilesLoaded = false;
+
+  showPieChart = false;
+  showBarChart = false;
+
   pieChartData: ChartConfiguration<'pie'>['data'] = {
     labels: ['SAVINGS', 'CURRENT', 'CREDIT'],
-    datasets: [{ 
-        data: [0, 0, 0], 
-        backgroundColor: ['#4CAF50', '#2196F3', '#FFC107'] 
+    datasets: [{
+      data: [0, 0, 0],
+      backgroundColor: ['#4CAF50', '#2196F3', '#FFC107']
     }]
   };
   pieChartOptions: ChartOptions<'pie'> = {
@@ -42,13 +43,12 @@ export class Bankerdashboard implements OnInit {
     }
   };
 
-  // 💥 FIX: Correct structure for ChartConfiguration (TS2741 resolved) 💥
   ageGroupChartData: ChartConfiguration<'bar'>['data'] = {
     labels: ['18–29', '30–59', '60+'],
-    datasets: [{ 
-        data: [0, 0, 0], 
-        label: 'Customer Age Groups', 
-        backgroundColor: ['#42A5F5', '#66BB6A', '#FFA726'] 
+    datasets: [{
+      data: [0, 0, 0],
+      label: 'Customer Age Groups',
+      backgroundColor: ['#42A5F5', '#66BB6A', '#FFA726']
     }]
   };
   ageGroupChartOptions: ChartOptions<'bar'> = {
@@ -69,45 +69,45 @@ export class Bankerdashboard implements OnInit {
     const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
     const branchId = this.bankerData.branches.branchId;
 
-    // 1. Fetch Accounts
-    this.http.get<any[]>(`https://smartbanking-production.up.railway.app/api/banker/getAccountsByBranches/${branchId}`, { headers })
-      .subscribe(response => {
+    const accounts$ = this.http.get<any[]>(`https://smartbanking-production.up.railway.app/api/banker/getAccountsByBranches/${branchId}`, { headers }).pipe(
+      tap(response => {
         this.accounts = response;
         this.processPieChartData();
-        this.accountsLoaded = true;
-        console.log(this.accounts)
-        // FIX: Update, then force visibility after data is ready
-        setTimeout(() => {
-            if (this.accounts.length > 0) {
-                 this.pieChart?.update();
-                 this.showPieChart = true; // Make chart visible
-            }
-        }, 0); 
-
-      }, error => {
+      }),
+      catchError(error => {
         console.error('Error fetching accounts:', error);
-        this.accountsLoaded = true;
-      });
+        return of([]);
+      })
+    );
 
-    // 2. Fetch Profiles
-    this.http.get<any[]>(`https://smartbanking-production.up.railway.app/api/banker/getCustomerProfiles/${branchId}`, { headers })
-      .subscribe(response => {
+    const profiles$ = this.http.get<any[]>(`https://smartbanking-production.up.railway.app/api/banker/getCustomerProfiles/${branchId}`, { headers }).pipe(
+      tap(response => {
         this.profiles = response;
         this.processBarChartData();
-        this.profilesLoaded = true;
-        console.log(this.profiles)
-        // FIX: Update, then force visibility after data is ready
-        setTimeout(() => {
-            if (this.profiles.length > 0) {
-                this.barChart?.update();
-                this.showBarChart = true; // Make chart visible
-            }
-        }, 0);
-
-      }, error => {
+      }),
+      catchError(error => {
         console.error('Error fetching profiles:', error);
+        return of([]);
+      })
+    );
+
+    forkJoin([accounts$, profiles$])
+      .pipe(finalize(() => {
+        this.accountsLoaded = true;
         this.profilesLoaded = true;
-      });
+
+        setTimeout(() => {
+          if (this.accounts.length > 0) {
+            this.pieChart?.update();
+            this.showPieChart = true;
+          }
+          if (this.profiles.length > 0) {
+            this.barChart?.update();
+            this.showBarChart = true;
+          }
+        }, 0);
+      }))
+      .subscribe();
   }
 
   processPieChartData(): void {
@@ -115,7 +115,9 @@ export class Bankerdashboard implements OnInit {
     const typeCounts = { SAVINGS: 0, CURRENT: 0, CREDIT: 0 };
     this.accounts.forEach(account => {
       const type = account.accountType?.toUpperCase() as keyof typeof typeCounts;
-      if (typeCounts[type] !== undefined) { typeCounts[type]++; }
+      if (typeCounts[type] !== undefined) {
+        typeCounts[type]++;
+      }
     });
     this.pieChartData.datasets[0].data = [
       typeCounts['SAVINGS'], typeCounts['CURRENT'], typeCounts['CREDIT']
@@ -130,11 +132,16 @@ export class Bankerdashboard implements OnInit {
     this.profiles.forEach(profile => {
       const dob = new Date(profile.dateOfBirth);
       let age = now.getFullYear() - dob.getFullYear();
-      if (now.getMonth() < dob.getMonth() || (now.getMonth() === dob.getMonth() && now.getDate() < dob.getDate())) { age--; }
+      if (now.getMonth() < dob.getMonth() || (now.getMonth() === dob.getMonth() && now.getDate() < dob.getDate())) {
+        age--;
+      }
       if (age >= 18 && age < 30) age18to29++;
       else if (age >= 30 && age < 60) age30to59++;
       else if (age >= 60) age60plus++;
     });
+
     this.ageGroupChartData.datasets[0].data = [age18to29, age30to59, age60plus];
   }
+
+  
 }
