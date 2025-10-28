@@ -4,6 +4,7 @@
     <button class="btn btn-outline-light" (click)="logOut()">Logout</button>
   </div>
 </nav>
+
 <div class="container-fluid mt-3">
   <div class="row">
     <div class="col-md-3">
@@ -15,12 +16,9 @@
     </div>
 
     <div class="col-md-9">
-      
-<div *ngIf="isBankerDataLoaded && hasVisitedDashboard && display === 'dashboard'">
-  <app-bankerdashboard
-    [bankerData]="bankerData">
-  </app-bankerdashboard>
-</div>
+      <div *ngIf="display === 'dashboard' && bankerData">
+        <app-bankerdashboard [bankerData]="bankerData"></app-bankerdashboard>
+      </div>
       <div *ngIf="display === 'kyc'">
         <app-kyc-updates></app-kyc-updates>
       </div>

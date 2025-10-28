@@ -17,7 +17,6 @@ export class KycUpdates implements OnInit {
   headers:any
   ngOnInit(): void {
     const token = localStorage.getItem('accessToken');
-
     const headers = new HttpHeaders({
     Authorization: `Bearer ${token}`
     });

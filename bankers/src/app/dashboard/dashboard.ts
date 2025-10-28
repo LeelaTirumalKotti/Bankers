@@ -16,11 +16,8 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 export class Dashboard implements OnInit {
   loginData: any;
   id!: number;
-  display: string = "kyc";
+  display: string = "dashboard";
   bankerData: any;
-  hasVisitedDashboard: boolean = false;
-  dashboardKey: number = 0;
-  isBankerDataLoaded = false;
 
   constructor(private router: Router, private http: HttpClient) {
     if (this.router.getCurrentNavigation()?.extras.state) {
@@ -33,8 +30,6 @@ export class Dashboard implements OnInit {
       const userToken = localStorage.getItem("accessToken");
       this.id = this.loginData.id;
 
-      this.hasVisitedDashboard = true;
-
       const headers = new HttpHeaders({
         Authorization: `Bearer ${userToken}`
       });
@@ -43,7 +38,7 @@ export class Dashboard implements OnInit {
         .subscribe({
           next: (response: any) => {
             this.bankerData = response;
-                  this.isBankerDataLoaded = true; // ✅ mark data as ready
+            console.log('bankerData loaded:', this.bankerData);
           },
           error: (error: any) => {
             console.error("Error fetching banker data:", error);
@@ -56,7 +51,6 @@ export class Dashboard implements OnInit {
 
   displayFunction(key: string): void {
     this.display = key;
-  console.log(this.display)
   }
 
   logOut(): void {

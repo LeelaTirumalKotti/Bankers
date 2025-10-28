@@ -1,4 +1,11 @@
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import {
+  Component,
+  Input,
+  OnChanges,
+  SimpleChanges,
+  ViewChild,
+  ChangeDetectorRef
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgChartsModule, BaseChartDirective } from 'ng2-charts';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
@@ -13,7 +20,7 @@ import { catchError, tap, finalize } from 'rxjs/operators';
   templateUrl: './bankerdashboard.html',
   styleUrls: ['./bankerdashboard.css']
 })
-export class Bankerdashboard implements OnInit {
+export class Bankerdashboard implements OnChanges {
   @Input() bankerData: any;
 
   @ViewChild('pieChart') pieChart?: BaseChartDirective;
@@ -25,9 +32,6 @@ export class Bankerdashboard implements OnInit {
   accountsLoaded = false;
   profilesLoaded = false;
 
-  showPieChart = false;
-  showBarChart = false;
-
   pieChartData: ChartConfiguration<'pie'>['data'] = {
     labels: ['SAVINGS', 'CURRENT', 'CREDIT'],
     datasets: [{
@@ -35,6 +39,7 @@ export class Bankerdashboard implements OnInit {
       backgroundColor: ['#4CAF50', '#2196F3', '#FFC107']
     }]
   };
+
   pieChartOptions: ChartOptions<'pie'> = {
     responsive: true,
     plugins: {
@@ -51,6 +56,7 @@ export class Bankerdashboard implements OnInit {
       backgroundColor: ['#42A5F5', '#66BB6A', '#FFA726']
     }]
   };
+
   ageGroupChartOptions: ChartOptions<'bar'> = {
     responsive: true,
     plugins: {
@@ -60,14 +66,17 @@ export class Bankerdashboard implements OnInit {
     scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
   };
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
 
-  ngOnInit(): void {
-    if (!this.bankerData) return;
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['bankerData'] && this.bankerData?.branches?.branchId) {
+      this.loadDashboardData(this.bankerData.branches.branchId);
+    }
+  }
 
+  loadDashboardData(branchId: string): void {
     const token = localStorage.getItem('accessToken');
     const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
-    const branchId = this.bankerData.branches.branchId;
 
     const accounts$ = this.http.get<any[]>(`https://smartbanking-production.up.railway.app/api/banker/getAccountsByBranches/${branchId}`, { headers }).pipe(
       tap(response => {
@@ -96,14 +105,16 @@ export class Bankerdashboard implements OnInit {
         this.accountsLoaded = true;
         this.profilesLoaded = true;
 
+        // Ensure view is updated before accessing ViewChild
         setTimeout(() => {
-          if (this.accounts.length > 0) {
-            this.pieChart?.update();
-            this.showPieChart = true;
+          this.cdr.detectChanges();
+
+          if (this.pieChart && typeof this.pieChart.update === 'function') {
+            this.pieChart.update();
           }
-          if (this.profiles.length > 0) {
-            this.barChart?.update();
-            this.showBarChart = true;
+
+          if (this.barChart && typeof this.barChart.update === 'function') {
+            this.barChart.update();
           }
         }, 0);
       }))
@@ -111,7 +122,6 @@ export class Bankerdashboard implements OnInit {
   }
 
   processPieChartData(): void {
-    if (this.accounts.length === 0) return;
     const typeCounts = { SAVINGS: 0, CURRENT: 0, CREDIT: 0 };
     this.accounts.forEach(account => {
       const type = account.accountType?.toUpperCase() as keyof typeof typeCounts;
@@ -125,7 +135,6 @@ export class Bankerdashboard implements OnInit {
   }
 
   processBarChartData(): void {
-    if (this.profiles.length === 0) return;
     const now = new Date();
     let age18to29 = 0, age30to59 = 0, age60plus = 0;
 
@@ -142,6 +151,4 @@ export class Bankerdashboard implements OnInit {
 
     this.ageGroupChartData.datasets[0].data = [age18to29, age30to59, age60plus];
   }
-
-  
 }

@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { firstValueFrom } from 'rxjs';
+import { BehaviorSubject, catchError, of, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-search-account',
@@ -12,38 +12,40 @@ import { firstValueFrom } from 'rxjs';
   styleUrls: ['./search-account.css']
 })
 export class SearchAccount {
-
   accountNumber: string = '';
-  display: boolean = false;
-  account: any = null;
+  invalidAccount = false;
+  account$ = new BehaviorSubject<any | null>(null);
 
   constructor(private http: HttpClient) {}
 
-  async searchAccount(): Promise<void> {
-    const token = localStorage.getItem('accessToken');
-    if (!token) {
-      console.error('No access token found');
-      return;
-    }
-
-    const headers = new HttpHeaders({
-      Authorization: `Bearer ${token}`
-    });
-
-    try {
-      const url = `https://smartbanking-production.up.railway.app/api/banker/account/${this.accountNumber}`;
-      this.account = await firstValueFrom(this.http.get<any>(url, { headers }));
-      if(this.account==null){
-        alert("Account Number is Invalid")
-      }
-      else{
-        this.display=true;
-      }
-      
-       
-    } catch (err) {
-      console.error('Failed to load account details', err);
-      this.display = false;
-    }
+searchAccount(): void {
+  const token = localStorage.getItem('accessToken');
+  if (!token) {
+    console.error('No access token found');
+    return;
   }
+
+  const headers = new HttpHeaders({
+    Authorization: `Bearer ${token}`
+  });
+
+  const url = `https://smartbanking-production.up.railway.app/api/banker/account/${this.accountNumber}`;
+
+  this.http.get<any>(url, { headers }).pipe(
+    catchError(err => {
+      console.error('Failed to load account details', err);
+      this.invalidAccount = true;
+      this.account$.next(null);
+      return of(null);
+    })
+  ).subscribe(account => {
+    if (!account) {
+      this.invalidAccount = true;
+      this.account$.next(null);
+    } else {
+      this.invalidAccount = false;
+      this.account$.next(account);
+    }
+  });
+}
 }
