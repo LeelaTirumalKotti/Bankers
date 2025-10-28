@@ -18,13 +18,13 @@
 
     <ng-container *ngIf="account$ | async as account">
       <div class="alert alert-info mt-3" *ngIf="account">
-        <p><strong>Account Number:</strong> {{ account.accountNumber }}</p>
-        <p><strong>Balance:</strong> ₹{{ account.balance }}</p>
+        <p id="accountNumber"><strong>Account Number:</strong> {{ account.accountNumber }}</p>
+        <p id=""balance><strong>Balance:</strong> ₹{{ account.balance }}</p>
       </div>
     </ng-container>
 
-        <div *ngIf="invalidAccount" class="alert alert-danger mt-3">
-      ❌ Invalid account number. Please try again.
+        <div *ngIf="invalidAccount" class="alert alert-danger mt-3" >
+    <p id="invalidAccount">❌ Invalid account number. Please try again.</p>
     </div>
   </div>
 </div>
