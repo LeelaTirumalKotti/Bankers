@@ -4,7 +4,8 @@ import {
   OnChanges,
   SimpleChanges,
   ViewChild,
-  ChangeDetectorRef
+  ChangeDetectorRef,
+  OnInit
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgChartsModule, BaseChartDirective } from 'ng2-charts';
@@ -20,9 +21,9 @@ import { catchError, tap, finalize } from 'rxjs/operators';
   templateUrl: './bankerdashboard.html',
   styleUrls: ['./bankerdashboard.css']
 })
-export class Bankerdashboard implements OnChanges {
+export class Bankerdashboard implements OnInit {
   @Input() bankerData: any;
-
+  branchId :string = "11";
   @ViewChild('pieChart') pieChart?: BaseChartDirective;
   @ViewChild('barChart') barChart?: BaseChartDirective;
 
@@ -67,17 +68,23 @@ export class Bankerdashboard implements OnChanges {
   };
 
   constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
+  ngOnInit(): void {
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['bankerData'] && this.bankerData?.branches?.branchId) {
-      this.loadDashboardData(this.bankerData.branches.branchId);
-    }
+    this.loadDashboardData(this.bankerData.branches.branchId);
   }
+
+  // ngOnChanges(changes: SimpleChanges): void {
+  //   // if (changes['bankerData'] && this.bankerData?.branches?.branchId) {
+  //     this.loadDashboardData(this.bankerData.branches.branchId);
+  //   // }
+  // }
+
+  
 
   loadDashboardData(branchId: string): void {
     const token = localStorage.getItem('accessToken');
     const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
-
+    console.log("CLicked Dashboared");
     const accounts$ = this.http.get<any[]>(`https://smartbanking-production.up.railway.app/api/banker/getAccountsByBranches/${branchId}`, { headers }).pipe(
       tap(response => {
         this.accounts = response;
