@@ -25,13 +25,13 @@ export class Login {
     this.http.post("https://smartbanking-production.up.railway.app/api/auth/login", this.loginForm.value)
       .subscribe({
         next: (response: any) => {
-          console.log(response);
           if(response.status==="PENDING"){
             alert("Banker is not approved")
           }
           else if(response.status==="REJECTED"){
             alert("Banker is Rejected")
           }
+          
               //Adding token and role to localstorage 
           else {
               localStorage.setItem('accessToken', response.token)
@@ -47,7 +47,7 @@ export class Login {
           }
          ,
         error: (err: any) => {
-          alert(err.error.message)
+          alert(err.error)
         }
       });
   }
